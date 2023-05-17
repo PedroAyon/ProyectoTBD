@@ -6,7 +6,7 @@ USE hotelclean;
 CREATE TABLE Hotel
 (
     ID   INT PRIMARY KEY AUTO_INCREMENT,
-    Name VARCHAR(50) NOT NULL
+    Name VARCHAR(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE Employee
@@ -77,7 +77,7 @@ CREATE TABLE ServiceEmployeeAssignment
     FOREIGN KEY (EmployeeID) REFERENCES Employee (ID)
 );
 
-CREATE TABLE Resource
+CREATE TABLE CleaningResource
 (
     ID       INT PRIMARY KEY AUTO_INCREMENT,
     Name     VARCHAR(60) NOT NULL,
@@ -92,5 +92,5 @@ CREATE TABLE ConsumedResources
     SpentStock INT NOT NULL,
     PRIMARY KEY (ServiceID, ResourceID),
     FOREIGN KEY (ServiceID) REFERENCES Service (ID),
-    FOREIGN KEY (ResourceID) REFERENCES Resource (ID)
+    FOREIGN KEY (ResourceID) REFERENCES CleaningResource (ID)
 );
