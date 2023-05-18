@@ -9,13 +9,19 @@ namespace API.Data;
 
 public partial class HotelCleanContext : DbContext
 {
-    public HotelCleanContext()
+    private const string dbConnectionStringName = "HotelCleanDBConnection";
+    private readonly IConfiguration _config;
+
+
+    public HotelCleanContext(IConfiguration config)
     {
+        _config = config;
     }
 
-    public HotelCleanContext(DbContextOptions<HotelCleanContext> options)
+    public HotelCleanContext(IConfiguration config, DbContextOptions<HotelCleanContext> options)
         : base(options)
     {
+        _config = config;
     }
 
     public virtual DbSet<Employee> Employees { get; set; }
@@ -30,18 +36,17 @@ public partial class HotelCleanContext : DbContext
 
     public virtual DbSet<Service> Services { get; set; }
 
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // string connectionString = Environment.GetEnvironmentVariable("HotelCleanDBConnection");
-        string connectionString = "Server=localhost;User ID=root;Password=pedro123;Database=hotelclean";
+        string? connectionString = _config[$"ConnectionStrings:{dbConnectionStringName}"];
+        //string connectionString = "Server=localhost;User ID=root;Password=pedro123;Database=hotelclean";
         if (connectionString != null)
         {
             optionsBuilder.UseMySql(connectionString, ServerVersion.Parse("8.0.32-mysql"));
         }
         else
         {
-            throw new Exception("Could not retrieve HotelCleanDBConnection environment variable");
+            throw new Exception("Could not retrieve the database connection string");
         }
     }
 

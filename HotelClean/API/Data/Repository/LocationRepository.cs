@@ -18,7 +18,7 @@ namespace API.Data.Repository
             _context.Locations.Add(location);
             await _context.SaveChangesAsync();
             return location;
-            
+
         }
 
         public async Task DeleteLocation(Location location)
@@ -28,15 +28,16 @@ namespace API.Data.Repository
         }
 
         public async Task<Location> GetLocation(int id) => await _context.Locations.FindAsync(id);
-        
+
 
         public async Task<IEnumerable<Location>> GetLocations() => await _context.Locations.ToListAsync();
 
         public async Task<bool> LocationExists(int id) => await _context.Locations.AnyAsync(l => l.Id == id);
 
-        public Task UpdateLocation(Location location)
+        public async Task UpdateLocation(Location location)
         {
-            throw new NotImplementedException();
+            _context.Entry(location).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
     }
 }

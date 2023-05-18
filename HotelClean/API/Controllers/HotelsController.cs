@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Domain.Model;
 using API.Data.Repository;
+using API.Data.Interfaces;
 
 namespace API.Controllers
 {
@@ -14,9 +15,9 @@ namespace API.Controllers
     [ApiController]
     public class HotelsController : ControllerBase
     {
-        private readonly HotelRepository _hotelRepository;
+        private readonly IHotelRepository _hotelRepository;
 
-        public HotelsController(HotelRepository hotelRepository)
+        public HotelsController(IHotelRepository hotelRepository)
         {
             _hotelRepository = hotelRepository;
         }
@@ -44,6 +45,19 @@ namespace API.Controllers
             }
 
             return hotel;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Hotel>> PostHotel(Hotel hotel)
+        {
+            try
+            {
+                await _hotelRepository.AddHotel(hotel);
+                return Ok();
+            } catch (ValidationError e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }

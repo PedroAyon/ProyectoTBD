@@ -1,6 +1,10 @@
-﻿using API.Data.Interfaces;
+﻿using System;
+using System.Data;
+using API.Data.Interfaces;
 using API.Domain.Model;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 
 namespace API.Data.Repository
 {
@@ -11,6 +15,19 @@ namespace API.Data.Repository
         public HotelRepository(HotelCleanContext context)
         {
             _context = context;
+        }
+
+        public async Task AddHotel(Hotel hotel) 
+        {
+            var hotelExists = await _context.Hotels.AnyAsync(x => x.Name == hotel.Name);
+            if (!hotelExists)
+            {
+                await _context.Database.ExecuteSqlInterpolatedAsync($"call createHotel({hotel.Name})");
+            }
+            else
+            {
+                throw new ValidationError($"{hotel.Name} ya existe.");
+            }
         }
 
         public async Task<IEnumerable<Hotel>> GetAllHotels() => await _context.Hotels.ToListAsync();
