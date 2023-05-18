@@ -103,14 +103,6 @@ CREATE PROCEDURE assignEmployeeToService(IN _employeeID INT, IN _serviceID INT)
 BEGIN
     INSERT INTO ServiceEmployeeAssignment(ServiceID, EmployeeID)
     VALUES (_serviceID, _employeeID);
-
-    UPDATE Service SET Status = 'En Curso' WHERE ID = _serviceID;
-    UPDATE Employee SET Status = 'Ocupado' WHERE ID = _employeeID;
-
-    IF ((SELECT (StartTime) FROM Service WHERE ID = _serviceID) IS NOT NULL)
-    THEN
-        UPDATE Service SET StartTime = current_time() WHERE ID = _serviceID;
-    END IF;
 END;
 //
 
@@ -145,20 +137,6 @@ BEGIN
     SET Username = newUser,
         Password = newPassword
     WHERE ID = userID;
-END;
-//
-DROP PROCEDURE IF EXISTS closeService;
-
-DELIMITER //
-CREATE PROCEDURE closeService(IN serviceID INT)
-BEGIN
-    UPDATE Service SET Status = 'Terminado', EndingTime = current_time() WHERE ID = serviceID;
-    UPDATE Employee
-    SET Status = 'Disponible'
-    WHERE ID IN (SELECT e.ID
-                 FROM Service s
-                          INNER JOIN ServiceEmployeeAssignment sea ON s.ID = sea.ServiceID
-                          INNER JOIN Employee e ON e.ID = sea.EmployeeID);
 END;
 //
 
