@@ -12,13 +12,13 @@ CREATE TABLE Hotel
 CREATE TABLE Employee
 (
     ID          INT PRIMARY KEY AUTO_INCREMENT,
-    HotelID     INT                                                             NOT NULL,
-    Name        VARCHAR(50)                                                     NOT NULL,
-    LastName    VARCHAR(50)                                                     NOT NULL,
-    Status      ENUM ('Disponible', 'Ocupado', 'Inactivo', 'Fuera De Servicio') NOT NULL,
-    Position    ENUM ('Administración', 'Intendencia')                          NOT NULL,
-    Username    VARCHAR(20)                                                     NOT NULL,
-    Password    VARCHAR(20)                                                     NOT NULL,
+    HotelID     INT                                        NOT NULL,
+    Name        VARCHAR(50)                                NOT NULL,
+    LastName    VARCHAR(50)                                NOT NULL,
+    Status      ENUM ('Disponible', 'Ocupado', 'Inactivo') NOT NULL,
+    Position    ENUM ('Administración', 'Intendencia')     NOT NULL,
+    Username    VARCHAR(20)                                NOT NULL,
+    Password    VARCHAR(20)                                NOT NULL,
     PhoneNumber VARCHAR(10),
     CONSTRAINT FK_Employee_Hotel FOREIGN KEY (HotelID) REFERENCES Hotel (ID)
 );

@@ -33,5 +33,7 @@ namespace API.Data.Repository
         public async Task<IEnumerable<Hotel>> GetAllHotels() => await _context.Hotels.ToListAsync();
 
         public async Task<Hotel> GetHotelById(int id) => await _context.Hotels.FindAsync(id);
+
+        public async Task<bool> HotelExists(int id) => await _context.Hotels.AnyAsync(h => h.Id == id);
     }
 }

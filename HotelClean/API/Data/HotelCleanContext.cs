@@ -72,7 +72,7 @@ public partial class HotelCleanContext : DbContext
             entity.Property(e => e.Password).HasMaxLength(20);
             entity.Property(e => e.PhoneNumber).HasMaxLength(10);
             entity.Property(e => e.Position).HasColumnType("enum('Administración','Intendencia')");
-            entity.Property(e => e.Status).HasColumnType("enum('Disponible','Ocupado','Inactivo','Fuera De Servicio')");
+            entity.Property(e => e.Status).HasColumnType("enum('Disponible','Ocupado','Inactivo')");
             entity.Property(e => e.Username).HasMaxLength(20);
         });
 

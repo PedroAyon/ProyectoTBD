@@ -15,29 +15,30 @@ namespace API.Data.Repository
 
         public async Task<Employee> AddEmployee(Employee employee)
         {
-            _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
+            await _context.Database.ExecuteSqlInterpolatedAsync($"CALL createEmployee({employee.HotelId}, {employee.Name}, {employee.LastName}, {employee.Position}, {employee.PhoneNumber}, {employee.Username}, {employee.Password})");
             return employee;
         }
 
-        public async Task<Employee> GetEmployeeById(int id) => await _context.Employees.FindAsync(id);
-
-        public async Task<IEnumerable<Employee>> GetEmployees() => await _context.Employees.ToListAsync();
-
-        public async Task<IEnumerable<Employee>> GetEmployeesByHotelId(int hotelId) => await _context.Employees
-                .Where(e => e.HotelId == hotelId)
-                .ToListAsync();
-
-        public async Task DeleteEmployee(Employee employee)
+        public async Task<Employee> GetEmployeeById(int id)
         {
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
+            var query = await _context.Employees.FromSqlInterpolated($"CALL getEmployeeByID({id})").ToListAsync();
+            if (query.Count == 0) return null!;
+            return query.Single();
         }
 
-        public async Task UpdateEmployee(Employee employee)
+        public async Task<IEnumerable<Employee>> GetEmployeesByHotelId(int hotelId)
         {
-            _context.Entry(employee).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            return await _context.Employees.FromSqlInterpolated($"CALL getEmployeesByHotelID({hotelId})").ToListAsync();
+        }
+
+        public async Task DeleteEmployee(int id)
+        {
+            await _context.Database.ExecuteSqlInterpolatedAsync($"CALL deleteEmployee({id})");
+        }
+
+        public async Task ChangeEmployeeCredentials(int id, string newUsername, string newPassword)
+        {
+            await _context.Database.ExecuteSqlInterpolatedAsync($"CALL changeEmployeeCredentials({id}, {newUsername}, {newPassword})");
         }
 
         public async Task<bool> EmployeeExists(int id) => await _context.Employees.AnyAsync(e => e.Id == id);

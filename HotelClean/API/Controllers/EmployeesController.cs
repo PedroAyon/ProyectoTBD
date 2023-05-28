@@ -14,30 +14,20 @@ namespace API.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
-        private readonly IEmployeeRepository _employeeRepository;
+        private readonly IEmployeeRepository employeeRepository;
+        private readonly IHotelRepository hotelRepository;
 
-        public EmployeesController(IEmployeeRepository employeeRepository)
+        public EmployeesController(IEmployeeRepository employeeRepository, IHotelRepository hotelRepository)
         {
-            _employeeRepository = employeeRepository;
-        }
-
-        // GET: api/Employees
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
-        {
-            var employees = await _employeeRepository.GetEmployees();
-            if (employees == null)
-            {
-                return NotFound();
-            }
-            return Ok(employees);
+            this.employeeRepository = employeeRepository;
+            this.hotelRepository = hotelRepository;
         }
 
         // GET: api/Employees/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Employee>> GetEmployee(int id)
         {
-            var employee = await _employeeRepository.GetEmployeeById(id);
+            var employee = await employeeRepository.GetEmployeeById(id);
 
             if (employee == null)
             {
@@ -51,7 +41,7 @@ namespace API.Controllers
         [HttpGet("hotels/{hotelId}/employees")]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesByHotel(int hotelId)
         {
-            var employees = await _employeeRepository.GetEmployeesByHotelId(hotelId);
+            var employees = await employeeRepository.GetEmployeesByHotelId(hotelId);
 
             if (employees == null)
             {
@@ -61,59 +51,41 @@ namespace API.Controllers
             return Ok(employees);
         }
 
-
-        // PUT: api/Employees/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmployee(int id, Employee employee)
-        {
-            if (id != employee.Id)
-            {
-                return BadRequest();
-            }
-
-
-            try
-            {
-                await _employeeRepository.UpdateEmployee(employee);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await _employeeRepository.EmployeeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
         // POST: api/Employees
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
         {
-            await _employeeRepository.AddEmployee(employee);
+            if (!await hotelRepository.HotelExists(employee.HotelId))
+            {
+                return BadRequest("El hotel no existe");
+            }
+            await employeeRepository.AddEmployee(employee);
             return CreatedAtAction("GetEmployee", new { id = employee.Id }, employee);
+        }
+
+        // PUT: api/Employees/5
+        [HttpPut]
+        public async Task<IActionResult> ChangeEmployeeCredentials(int id, string password, string newUsername, string newPassword)
+        {
+            var employee = await employeeRepository.GetEmployeeById(id);
+            if (employee == null)
+            {
+                return NotFound("El empleado no existe");
+            }
+
+            if (employee.Password != password)
+            {
+                return BadRequest("Las contraseña es incorrecta");
+            }
+            await employeeRepository.ChangeEmployeeCredentials(id, newUsername, newPassword);
+            return NoContent();
         }
 
         // DELETE: api/Employees/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
-            var employee = await _employeeRepository.GetEmployeeById(id);
-
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            await _employeeRepository.DeleteEmployee(employee);
-
+            await employeeRepository.DeleteEmployee(id);
             return NoContent();
         }
     }

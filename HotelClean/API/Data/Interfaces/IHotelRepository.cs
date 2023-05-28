@@ -6,6 +6,7 @@ namespace API.Data.Interfaces
     {
         Task<IEnumerable<Hotel>> GetAllHotels();
         Task<Hotel> GetHotelById(int id);
-        Task AddHotel(Hotel hotel) ;
+        Task AddHotel(Hotel hotel);
+        Task<bool> HotelExists(int id);
     }
 }

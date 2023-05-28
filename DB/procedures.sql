@@ -8,40 +8,96 @@ CREATE PROCEDURE createHotel(IN _name VARCHAR(50))
 BEGIN
     INSERT INTO Hotel(Name)
     VALUES (_name);
-END;
-//
+END //
+DELIMITER ;
 
+
+-- EMPLEADOS
 DROP PROCEDURE IF EXISTS createEmployee;
 
 DELIMITER //
-CREATE PROCEDURE createEmployee(IN _hotel INT, IN _name VARCHAR(30), IN _lastName VARCHAR(30),
-                                IN _position ENUM ('Administración', 'Intendencia'), IN _phone INT
+CREATE PROCEDURE createEmployee(IN p_hotel INT, IN p_name VARCHAR(30), IN p_lastName VARCHAR(30),
+                                IN p_position ENUM ('Administración', 'Intendencia'), IN p_phoneNumber VARCHAR(10),
+                                IN p_userName VARCHAR(20), IN p_password VARCHAR(20)
 )
 BEGIN
-    DECLARE _autoUser VARCHAR(20) DEFAULT (SELECT max(ID) FROM Employee);
-    DECLARE _autoPassword VARCHAR(20) DEFAULT '';
-    DECLARE a INT Default 0;
+    INSERT INTO Employee(HotelID, Name, LastName, Status, Position, Username, Password, PhoneNumber)
+    VALUES (p_hotel, p_name, p_lastName, 'Disponible', p_position, p_userName, p_password, p_phoneNumber);
+END//
+DELIMITER ;
 
-    IF ((SELECT max(ID) FROM Employee) IS NULL)
-    THEN
-        SET _autoUser = '0';
+DROP PROCEDURE IF EXISTS getEmployeesByHotelID;
+
+DELIMITER //
+CREATE PROCEDURE getEmployeesByHotelID(IN p_hotelID INT)
+BEGIN
+    SELECT *
+    FROM Employee e
+    WHERE e.HotelID = p_hotelID;
+END//
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS getEmployeeByID;
+
+DELIMITER //
+CREATE PROCEDURE getEmployeeByID(IN employeeID INT)
+BEGIN
+    SELECT * FROM Employee WHERE ID = employeeID;
+END //
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS changeEmployeeCredentials;
+
+DELIMITER //
+CREATE PROCEDURE changeEmployeeCredentials(IN userID INT, IN newUser VARCHAR(20), IN newPassword VARCHAR(20))
+BEGIN
+    IF newUser IS NOT NULL THEN
+        UPDATE Employee
+        SET Username = newUser
+        WHERE ID = userID;
     END IF;
 
-    simple_loop:
-    LOOP
-        SET a = a + 1;
-        SET _autoUser = hex(_autoUser + a);
-        IF ((SELECT Username FROM Employee) IS NULL) THEN
-            LEAVE simple_loop;
-        END IF;
-    END LOOP simple_loop;
+    IF newPassword IS NOT NULL THEN
+        UPDATE Employee
+        SET Password = newPassword
+        WHERE ID = userID;
+    END IF;
+END//
+DELIMITER ;
 
-    SET _autoPassword = convert(rand(), char(8));
 
-    INSERT INTO Employee(HotelID, Name, LastName, Status, Position, Username, Password, PhoneNumber)
-    VALUES (_hotel, _name, _lastName, 'Disponible', _position, _autoUser, _autoPassword, _phone);
-END;
-//
+DROP PROCEDURE IF EXISTS searchEmployeeByName;
+
+DELIMITER //
+CREATE PROCEDURE searchEmployeeByName(IN lastName VARCHAR(50), IN name VARCHAR(50))
+BEGIN
+    SELECT * FROM Employee WHERE LastName like lastName AND Name like name;
+END //
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS getEmployeesSorted;
+
+DELIMITER //
+CREATE PROCEDURE getEmployeesSorted()
+BEGIN
+    SELECT * FROM Employee order by Name;
+END //
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS deleteEmployee;
+
+DELIMITER //
+
+CREATE PROCEDURE deleteEmployee(IN employeeID INT)
+BEGIN
+    DELETE FROM Employee WHERE ID = employeeID;
+END //
+
+DELIMITER ;
+
+
+-- Locaciones
 
 DROP PROCEDURE IF EXISTS createLocation;
 
@@ -75,7 +131,7 @@ BEGIN
     THEN
         SET defaultStock = _stock;
     END IF;
-    INSERT INTO Resource(Name, Category, Stock) VALUES (_name, _category, _stock);
+    INSERT INTO CleaningResource(Name, Category, Stock) VALUES (_name, _category, _stock);
 END;
 //
 
@@ -118,6 +174,8 @@ BEGIN
 END;
 //
 
+DROP PROCEDURE IF EXISTS registerServiceAsFinished;
+
 DELIMITER //
 CREATE PROCEDURE registerServiceAsFinished(IN _serviceID INT)
 BEGIN
@@ -128,47 +186,16 @@ BEGIN
 END;
 //
 
-DROP PROCEDURE IF EXISTS changeUserPassword;
-
-DELIMITER //
-CREATE PROCEDURE changeUserPassword(IN userID INT, IN newUser VARCHAR(20), IN newPassword VARCHAR(20))
-BEGIN
-    UPDATE Employee
-    SET Username = newUser,
-        Password = newPassword
-    WHERE ID = userID;
-END;
-//
-
 DROP PROCEDURE IF EXISTS updateStock;
 
 DELIMITER //
 CREATE PROCEDURE updateStock(IN _id INT, IN _stock INT)
 BEGIN
-    DECLARE actualStock INT DEFAULT (SELECT Stock FROM Resource WHERE ID = _id);
-    UPDATE Resource SET Stock = (actualStock + _stock) WHERE ID = _id;
+    DECLARE actualStock INT DEFAULT (SELECT Stock FROM CleaningResource WHERE ID = _id);
+    UPDATE CleaningResource SET Stock = (actualStock + _stock) WHERE ID = _id;
 END;
 //
 
--- BUSQUEDA
-
-DROP PROCEDURE IF EXISTS searchEmployeeByID;
-
-DELIMITER //
-CREATE PROCEDURE searchEmployeeByID(IN employeeID INT)
-BEGIN
-    SELECT * FROM Employee WHERE ID = employeeID;
-END;
-//
-
-DROP PROCEDURE IF EXISTS searchEmployeeByName;
-
-DELIMITER //
-CREATE PROCEDURE searchEmployeeByName(IN lastName VARCHAR(50), IN name VARCHAR(50))
-BEGIN
-    SELECT * FROM Employee WHERE LastName like lastName AND Name like name;
-END;
-//
 
 DROP PROCEDURE IF EXISTS searchHotelByID;
 
@@ -196,15 +223,6 @@ DELIMITER //
 CREATE PROCEDURE getHotelsInOrderAlphabetic()
 BEGIN
     SELECT * FROM Hotel order by Name;
-END;
-//
-
-DROP PROCEDURE IF EXISTS getEmployeeInOrderAlphabetic;
-
-DELIMITER //
-CREATE PROCEDURE getEmployeeInOrderAlphabetic()
-BEGIN
-    SELECT * FROM Employee order by Name;
 END;
 //
 

@@ -13,7 +13,7 @@ public partial class Employee
 
     public string LastName { get; set; } = null!;
 
-    public string Status { get; set; } = null!;
+    public string? Status { get; set; }
 
     public string Position { get; set; } = null!;
 
