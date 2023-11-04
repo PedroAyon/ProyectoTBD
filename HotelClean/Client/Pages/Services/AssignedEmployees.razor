@@ -1,0 +1,70 @@
+﻿@page "/service/{id:int}/employees/"
+@using Client.Data.Interfaces;
+@using Client.Domain.Model;
+@inject IServiceRepository serviceRepository;
+@inject IEmployeeRepository employeeRepository;
+@inject NavigationManager NavigationManager
+
+@if (error)
+{
+    <p>No se pudo completar la peticion.</p>
+}
+else
+{
+    <table class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Status</th>
+                <th>Numero de telefono</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in employees)
+            {
+                if (e.Position != "Intendencia") continue;
+                <tr>
+                    <th scope="row">@e.Id</th>
+                    <td>@e.Name</td>
+                    <td>@e.LastName</td>
+                    <td>@e.Status</td>
+                    <td>@e.PhoneNumber</td>
+                    @if (service.Status != "Terminado")
+                    {
+                        <td>
+                            <button type="button" class="btn btn-danger" @onclick="() => UnregisterEmployee(e.Id)">Borrar</button>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private IEnumerable<Employee>? employees = Array.Empty<Employee>();
+    private Service? service;
+    private bool error;
+    private bool shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        service = await serviceRepository.GetService(id);
+        employees = await employeeRepository.GetServiceEmployeeList(id);
+        if (employees is null || service is null) error = true;
+        shouldRender = true;
+    }
+
+    protected async Task UnregisterEmployee(int employeeId)
+    {
+        await serviceRepository.UnregisterEmployeeFromService(service.Id, employeeId);
+        NavigationManager.NavigateTo($"/service/{service.Id}/employees/", forceLoad: true);
+    }
+
+
+}

@@ -9,7 +9,7 @@
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
   <ItemGroup>
-    <Folder Include="Data\" />
+    <PackageReference Include="Blazor.Bootstrap" Version="1.8.0" />
   </ItemGroup>
 
 </Project>

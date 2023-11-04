@@ -1,0 +1,59 @@
+﻿@page "/service/{id:int}/assignment/"
+@using Client.Data.Interfaces;
+@using Client.Domain.Model;
+@inject IServiceRepository serviceRepository;
+@inject IEmployeeRepository employeeRepository;
+@inject NavigationManager NavigationManager
+
+
+
+@if (error || employees == null)
+{
+    <h1>Error de conexion</h1>
+}
+else
+{
+    @if (selectedEmployee != null)
+    {
+        <p>Empleado seleccionado: @selectedEmployee.Id: @selectedEmployee.Name @selectedEmployee.LastName</p>
+        @AssignEmpployeeToService();
+    }
+    else
+    {
+        <EmployeeSelector employees="employees" SelectEmployeeHandler="EmployeeSelected" />
+    }
+}
+
+
+@code {
+    private Employee? selectedEmployee { get; set; }
+    private IEnumerable<Employee>? employees = Array.Empty<Employee>();
+    private bool error;
+    private bool shouldRender;
+
+    [Parameter]
+    public int id { get; set; }
+
+
+    protected override bool ShouldRender() => shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await employeeRepository.GetEmployees();
+        if (employees == null) error = true;
+        shouldRender = true;
+    }
+
+    protected async Task AssignEmpployeeToService()
+    {
+        await serviceRepository.AssignEmployeeToService(id, selectedEmployee.Id);
+        NavigationManager.NavigateTo("services", forceLoad: true);
+    }
+
+    protected void EmployeeSelected(Employee employee)
+    {
+        selectedEmployee = employee;
+        StateHasChanged();
+    }
+
+}

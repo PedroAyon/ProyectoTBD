@@ -1,0 +1,79 @@
+﻿@page "/services/register"
+@using Client.Data.Interfaces;
+@using Client.Domain.Model;
+@inject ILocationRepository locationRepository;
+@inject IServiceRepository serviceRepository;
+@inject NavigationManager NavigationManager
+
+
+@if(error || locations == null)
+{
+    <h1>Error de conexion</h1>
+}
+else
+{
+    @if(selectedLocation != null)
+    {
+        <div class="container-sm">
+            <p>Locacion seleccionada: @selectedLocation.Id</p>
+            <form @onsubmit="RegisterNewService">
+                <div class="form-group pt-3">
+                    <label for="typeSelect">Tipo de servicio</label>
+                    <select class="form-control" value="@selectedType" id="typeSelect" @onchange="ApplyTypeSelection">
+                        <option>General</option>
+                        <option>Limpieza</option>
+                        <option>Sanitizacion</option>
+                    </select>
+                </div>
+                <div class="form-group pt-5 text-center">
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </div>
+            </form>
+        </div>
+    }
+    else
+    {
+        <LocationSelector locations="locations" SelectLocationHandler="LocationSelected" />
+    }
+}
+
+
+@code {
+    private Location? selectedLocation { get; set; }
+    private IEnumerable<Location>? locations = Array.Empty<Location>();
+    private bool error;
+    private bool shouldRender;
+    private string selectedType = "General";
+
+
+    protected override bool ShouldRender() => shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        locations = await locationRepository.GetLocations();
+        if (locations == null) error = true;
+        shouldRender = true;
+    }
+
+    protected async Task RegisterNewService()
+    {
+        var service = new Service();
+        service.LocationId = selectedLocation.Id;
+        service.Type = selectedType;
+        await serviceRepository.RegisterService(service);
+        NavigationManager.NavigateTo("services", forceLoad: true);
+    }
+
+    protected void LocationSelected(Location location)
+    {
+        selectedLocation = location;
+        StateHasChanged();
+    }
+
+    protected void ApplyTypeSelection(ChangeEventArgs e)
+    {
+        selectedType = e.Value.ToString();
+    }
+
+
+}

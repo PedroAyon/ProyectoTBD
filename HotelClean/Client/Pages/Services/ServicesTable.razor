@@ -1,0 +1,103 @@
+﻿@using System.Globalization
+@using Client.Domain.Model;
+
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Lugar</th>
+            <th>Status</th>
+            <th>Tipo</th>
+            @if(status != "Pendiente")
+            {
+                <th>Fecha</th>
+                <th>Hora de inicio</th>
+                <th>Hora de finalización</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in services)
+        {
+            if (type != "Todos" && s.Type != type)
+            {
+                continue;
+            }
+            <tr>
+                <th scope="row">@s.Id</th>
+                @if (s.Location != null)
+                {
+                    @if (s.Location.Type == "Room")
+                    {
+                        <td>Habitación @s.Location.Floor@s.Location.Number</td>
+                    }
+                    else
+                    {
+                        <td>@s.Location.Name</td>
+                    }
+                }
+                else
+                {
+                    <td>@s.LocationId</td>
+                }
+                <td>@s.Status</td>
+                <td>@s.Type</td>
+                @if (status != "Pendiente")
+                {
+                    <td>@s.Date?.ToString("d", CultureInfo.InvariantCulture)</td>
+                    <td>@s.StartTime?.ToString("t", CultureInfo.InvariantCulture)</td>
+                    <td>@s.EndingTime?.ToString("t", CultureInfo.InvariantCulture)</td>
+                }
+                <td>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Acciones
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            @if (s.Status == "Pendiente")
+                            {
+                                <a class="dropdown-item" @onclick="() => StartServiceHandler.Invoke(s.Id)">Iniciar Servicio</a>
+                            }
+                            @if (s.Status == "En Curso")
+                            {
+                                <a class="dropdown-item" @onclick="() => FinishServiceHandler.Invoke(s.Id)">Terminar Servicio</a>
+                            }
+                            @if (s.Status != "Terminado")
+                            {
+                                <a class="dropdown-item" @onclick="() => AddEmployeeHandler.Invoke(s.Id)">Assignar Empleado</a>
+                                <a class="dropdown-item" @onclick="() => DeleteHandler.Invoke(s.Id)">Borrar</a>
+                            }
+                            <a class="dropdown-item" @onclick="() => GetAssignedEmployeesHandler.Invoke(s.Id)">Ver Empleados Asignados</a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public IEnumerable<Service> services { get; set; } = null!;
+
+    [Parameter]
+    public string status { get; set; } = "Todos";
+
+    [Parameter]
+    public string type { get; set; } = "General";
+
+    [Parameter]
+    public Action<int> AddEmployeeHandler { get; set; } = null!;
+
+    [Parameter]
+    public Func<int, Task> StartServiceHandler { get; set; } = null!;
+
+    [Parameter]
+    public Func<int, Task> FinishServiceHandler { get; set; } = null!;
+
+    [Parameter]
+    public Action<int> GetAssignedEmployeesHandler { get; set; } = null!;
+
+    [Parameter]
+    public Func<int, Task> DeleteHandler { get; set; } = null!;
+}

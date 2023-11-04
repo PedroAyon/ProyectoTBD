@@ -1,0 +1,61 @@
+﻿@page "/locations"
+@using System.Text.Json;
+@using Client.Data.Interfaces;
+@using Client.Domain.Model;
+@inject ILocationRepository locationRepository;
+
+
+<h1>Locaciones</h1>
+
+@if (getServicesError || locations is null)
+{
+    <p>Unable to get branches from GitHub. Please try again later.</p>
+}
+else
+{
+    <table class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Piso</th>
+                <th>Lugar</th>
+                <th>Tipo</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var location in locations)
+            {
+                <tr>
+                    <th scope="row">@location.Id</th>
+                    <th scope="row">@location.Floor</th>
+                    @if (location.Type == "Room")
+                    {
+                        <td>@location.Number</td>
+                        <th scope="row">Habitación</th>
+                    }
+                    else
+                    {
+                        <td>@location.Name</td>
+                        <th scope="row">Área</th>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Location>? locations = Array.Empty<Location>();
+    private bool getServicesError;
+    private bool shouldRender;
+    private int hotelId = 1;
+
+    protected override bool ShouldRender() => shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        locations = await locationRepository.GetLocations();
+        if (locations == null) getServicesError = true;
+        shouldRender = true;
+    }
+}

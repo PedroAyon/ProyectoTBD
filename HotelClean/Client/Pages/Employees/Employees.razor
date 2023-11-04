@@ -1,0 +1,112 @@
+﻿@page "/employees"
+@using Client.Data.Interfaces;
+@using Client.Domain.Model;
+@inject IEmployeeRepository employeeRepository;
+@inject NavigationManager NavigationManager
+
+@if (error)
+{
+    <p>No se pudo completar la peticion.</p>
+}
+else
+{
+    <form>
+        <div class="form-group">
+            <label for="positionSelect">Posición</label>
+            <select class="form-control" value="@selectedPosition" id="positionSelect" @onchange="ApplyPositionFilter">
+                <option>Todos</option>
+                <option>Intendencia</option>
+                <option>Administracion</option>
+            </select>
+        </div>
+        <div class="form-group pt-3">
+            <label for="statusSelect">Status</label>
+            <select class="form-control" value="@selectedStatus" id="statusSelect" @onchange="ApplyStatusFilter">
+                <option>Todos</option>
+                <option>Disponible</option>
+                <option>Ocupado</option>
+                <option>Inactivo</option>
+            </select>
+        </div>
+
+    </form>
+    <div class="py-3 text-center">
+        <a class="btn btn-primary" href="/employees/new" role="button">+ Nuevo empleado</a>
+    </div>
+
+    <table class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Posicion</th>
+                <th>Status</th>
+                <th>Numero de telefono</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in employees)
+            {
+                if (selectedPosition != "Todos" && e.Position != selectedPosition) continue;
+                if (selectedStatus != "Todos" && e.Status != selectedStatus) continue;
+                <tr>
+                    <th scope="row">@e.Id</th>
+                    <td>@e.Name</td>
+                    <td>@e.LastName</td>
+                    <td>@e.Position</td>
+                    <td>@e.Status</td>
+                    <td>@e.PhoneNumber</td>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Acciones
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <a class="dropdown-item" href="/employees/@e.Id/edit">Editar</a>
+                                <a class="dropdown-item" @onclick="() => DeleteEmployee(e.Id)">Borrar</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Employee>? employees = Array.Empty<Employee>();
+    private bool error;
+    private bool shouldRender;
+    private string selectedStatus = "Todos";
+    private string selectedPosition = "Todos";
+
+    protected override bool ShouldRender() => shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await employeeRepository.GetEmployees();
+        if (employees == null) error = true;
+        shouldRender = true;
+    }
+
+    protected void ApplyStatusFilter(ChangeEventArgs e)
+    {
+        selectedStatus = e.Value.ToString();
+    }
+
+    protected void ApplyPositionFilter(ChangeEventArgs e)
+    {
+        selectedPosition = e.Value.ToString();
+    }
+
+    protected async Task DeleteEmployee(int id)
+    {
+        try
+        {
+            await employeeRepository.DeleteEmployee(id);
+            NavigationManager.NavigateTo($"/employees/", forceLoad: true);
+        } 
+        catch (Exception e) {}
+    }
+}

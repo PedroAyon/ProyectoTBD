@@ -25,21 +25,13 @@ public partial class HotelCleanContext : DbContext
     }
 
     public virtual DbSet<Employee> Employees { get; set; }
-
-    public virtual DbSet<Hotel> Hotels { get; set; }
-
+    public virtual DbSet<EmployeePerformance> Performances { get; set; }
     public virtual DbSet<Location> Locations { get; set; }
-
-    public virtual DbSet<RecurringService> Recurringservices { get; set; }
-
-    public virtual DbSet<Resource> Resources { get; set; }
-
     public virtual DbSet<Service> Services { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         string? connectionString = _config[$"ConnectionStrings:{dbConnectionStringName}"];
-        //string connectionString = "Server=localhost;User ID=root;Password=pedro123;Database=hotelclean";
         if (connectionString != null)
         {
             optionsBuilder.UseMySql(connectionString, ServerVersion.Parse("8.0.32-mysql"));
@@ -60,13 +52,8 @@ public partial class HotelCleanContext : DbContext
         modelBuilder.Entity<Employee>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
-
             entity.ToTable("employee");
-
-            entity.HasIndex(e => e.HotelId, "FK_Employee_Hotel");
-
             entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.HotelId).HasColumnName("HotelID");
             entity.Property(e => e.LastName).HasMaxLength(50);
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.Password).HasMaxLength(20);
@@ -76,14 +63,33 @@ public partial class HotelCleanContext : DbContext
             entity.Property(e => e.Username).HasMaxLength(20);
         });
 
-        modelBuilder.Entity<Hotel>(entity =>
+        modelBuilder.Entity<EmployeePerformance>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
+            entity.ToTable("EmployeePerformance");
 
-            entity.ToTable("hotel");
+            entity.HasKey(e => e.ID);
 
-            entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.Name).HasMaxLength(50);
+            entity.Property(e => e.Name)
+                .HasColumnName("Name")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.LastName)
+                .HasColumnName("LastName")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Status)
+                .HasColumnName("Status")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.Property(e => e.PhoneNumber)
+                .HasColumnName("PhoneNumber")
+                .HasMaxLength(10);
+
+            entity.Property(e => e.ServiceCount)
+                .HasColumnName("ServiceCount");
         });
 
         modelBuilder.Entity<Location>(entity =>
@@ -91,45 +97,10 @@ public partial class HotelCleanContext : DbContext
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("location");
-
-            entity.HasIndex(e => e.HotelId, "FK_Location_Hotel");
-
             entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.HotelId).HasColumnName("HotelID");
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Number).HasMaxLength(2);
             entity.Property(e => e.Type).HasColumnType("enum('Room','Area')");
-        });
-
-        modelBuilder.Entity<RecurringService>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-            entity.ToTable("recurringservice");
-
-            entity.HasIndex(e => e.HotelId, "FK_RecurringService_Hotel");
-
-            entity.HasIndex(e => e.LocationId, "FK_RecurringService_Location");
-
-            entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.Frequency).HasColumnType("enum('Daily','Custom')");
-            entity.Property(e => e.HotelId).HasColumnName("HotelID");
-            entity.Property(e => e.LocationId).HasColumnName("LocationID");
-            entity.Property(e => e.StartTime).HasColumnType("time");
-            entity.Property(e => e.Type)
-                .HasDefaultValueSql("'General'")
-                .HasColumnType("enum('Limpieza','Sanitizacion','General')");
-        });
-
-        modelBuilder.Entity<Resource>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-            entity.ToTable("resource");
-
-            entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.Category).HasMaxLength(40);
-            entity.Property(e => e.Name).HasMaxLength(60);
         });
 
         modelBuilder.Entity<Service>(entity =>
@@ -138,13 +109,10 @@ public partial class HotelCleanContext : DbContext
 
             entity.ToTable("service");
 
-            entity.HasIndex(e => e.HotelId, "FK_Service_Hotel");
-
             entity.HasIndex(e => e.LocationId, "FK_Service_Location");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.EndingTime).HasColumnType("time");
-            entity.Property(e => e.HotelId).HasColumnName("HotelID");
             entity.Property(e => e.LocationId).HasColumnName("LocationID");
             entity.Property(e => e.StartTime).HasColumnType("time");
             entity.Property(e => e.Status).HasColumnType("enum('Pendiente','En Curso','Terminado')");

@@ -1,0 +1,44 @@
+﻿@using Client.Data.Interfaces;
+@using Client.Domain.Model;
+
+<h3>Seleccione una locación</h3>
+
+<table class="table table-bordered table-sm table-hover">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Lugar</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var location in locations)
+        {
+            <tr @onclick="() => SelectLocation(location.Id)">
+                <th scope="row">@location.Id</th>
+                @if(location.Type == "Room")
+                {
+                    <td>Habitación @location.Floor@location.Number</td>
+                }
+                else
+                {
+                    <td>@location.Name</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public IEnumerable<Location> locations { get; set; } = null!;
+
+    [Parameter]
+    public Action<Location> SelectLocationHandler { get; set; } = null!;
+
+    private void SelectLocation(int id)
+    {
+        var location = locations.First(l => l.Id == id);
+        SelectLocationHandler.Invoke(location);
+
+    }
+}

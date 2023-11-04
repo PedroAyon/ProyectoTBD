@@ -1,0 +1,107 @@
+﻿@page "/services"
+@using System.Text.Json;
+@using Client.Data.Interfaces;
+@using Client.Domain.Model;
+@inject IServiceRepository serviceRepository;
+@inject NavigationManager NavigationManager
+
+@if (getServicesError || services is null)
+{
+    <p>No se pudo completar la peticion.</p>
+}
+else
+{
+    <h1>Servicios de limpieza</h1>
+    <form>
+        <div class="form-group pt-5">
+            <label for="statusSelect">Filtrar por status</label>
+            <select class="form-control mx-4" value="@selectedStatus" id="statusSelect" @onchange="ApplyStatusFilter">
+                <option>Todos</option>
+                <option>Pendiente</option>
+                <option>En Curso</option>
+                <option>Terminado</option>
+            </select>
+        </div>
+        <div class="form-group pt-5">
+            <label for="typeSelect">Filtrar por tipo</label>
+            <select class="form-control mx-4" value="@selectedType" id="typeSelect" @onchange="ApplyTypeFilter">
+                <option>Todos</option>
+                <option>General</option>
+                <option>Limpieza</option>
+                <option>Sanitizacion</option>
+            </select>
+        </div>
+
+    </form>
+    <div class="py-5 text-center">
+        <a class="btn btn-primary" href="/services/register">+ Registrar Servicio</a>
+    </div>
+
+    <ServicesTable services=@services status=@selectedStatus type=@selectedType
+              AddEmployeeHandler="@((serviceId) => AssignEmployees(serviceId))"
+              DeleteHandler="@((serviceId) => DeleteService(serviceId))" 
+              StartServiceHandler="@((serviceId) => StartService(serviceId))"
+              FinishServiceHandler="@((serviceId) => FinishService(serviceId))"
+              GetAssignedEmployeesHandler="@((serviceId) => GetAssignedEmployees(serviceId))"
+              />
+}
+
+@code {
+    private IEnumerable<Service>? services = Array.Empty<Service>();
+    private bool getServicesError;
+    private bool shouldRender;
+    private string selectedStatus = "Pendiente";
+    private string selectedType = "Todos";
+
+    protected override bool ShouldRender() => shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        services = await serviceRepository.GetPendingServices();
+        if (services == null) getServicesError = true;
+        shouldRender = true;
+    }
+
+    protected async Task ApplyStatusFilter(ChangeEventArgs e)
+    {
+        selectedStatus = e.Value.ToString();
+        if (selectedStatus == "Todos") services = await serviceRepository.GetServiceHistory(null, null);
+        if (selectedStatus == "Pendiente") services = await serviceRepository.GetPendingServices();
+        if (selectedStatus == "En Curso") services = await serviceRepository.GetOngoingServices();
+        if (selectedStatus == "Terminado") services = await serviceRepository.GetFinishedServices();
+        if (services == null) getServicesError = true;
+    }
+
+    protected void ApplyTypeFilter(ChangeEventArgs e)
+    {
+        selectedType = e.Value.ToString();
+    }
+
+    protected async void AssignEmployees(int serviceId)
+    {
+        NavigationManager.NavigateTo($"/service/{serviceId}/assignment/", forceLoad: true);
+    }
+
+    protected async Task StartService(int serviceId)
+    {
+        await serviceRepository.StartService(serviceId);
+        NavigationManager.NavigateTo("services", forceLoad: true);
+    }
+
+    protected async Task FinishService(int serviceId)
+    {
+        await serviceRepository.RegisterServiceAsFinished(serviceId);
+        NavigationManager.NavigateTo("services", forceLoad: true);
+    }
+
+    protected void GetAssignedEmployees(int serviceId)
+    {
+        NavigationManager.NavigateTo($"/service/{serviceId}/employees/", forceLoad: true);
+    }
+
+    protected async Task DeleteService(int serviceId)
+    {
+        await serviceRepository.UnregisterService(serviceId);
+        NavigationManager.NavigateTo("services", forceLoad: true);
+    }
+}

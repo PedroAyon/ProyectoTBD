@@ -1,11 +1,34 @@
+using Client.Data.Interfaces;
+using Client.Data.repository;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using BlazorBootstrap;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddHttpClient();
+
+var apiBaseAddress = new Uri("https://localhost:7265/");
+
+builder.Services.AddHttpClient<IServiceRepository, ServiceRepository>(client =>
+{
+    client.BaseAddress = apiBaseAddress;
+});
+
+builder.Services.AddHttpClient<IEmployeeRepository, EmployeeRepository>(client =>
+{
+    client.BaseAddress = apiBaseAddress;
+});
+
+builder.Services.AddHttpClient<ILocationRepository, LocationRepository>(client =>
+{
+    client.BaseAddress = apiBaseAddress;
+});
+
+builder.Services.AddBlazorBootstrap();
 
 var app = builder.Build();
 

@@ -1,0 +1,43 @@
+﻿@using Client.Data.Interfaces;
+@using Client.Domain.Model;
+
+<h3>Seleccione un empleado</h3>
+
+<table class="table table-bordered table-sm table-hover">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Status</th>
+            <th>Numero de telefono</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var e in employees)
+        {
+            if (e.Position != "Intendencia") continue;
+            <tr @onclick="() => SelectEmployee(e)">
+                <th scope="row">@e.Id</th>
+                <td>@e.Name</td>
+                <td>@e.LastName</td>
+                <td>@e.Status</td>
+                <td>@e.PhoneNumber</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public IEnumerable<Employee> employees { get; set; } = null!;
+
+    [Parameter]
+    public Action<Employee> SelectEmployeeHandler { get; set; } = null!;
+
+    private void SelectEmployee(Employee e)
+    {
+        SelectEmployeeHandler.Invoke(e);
+
+    }
+}

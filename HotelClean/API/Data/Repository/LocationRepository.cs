@@ -29,8 +29,10 @@ namespace API.Data.Repository
 
         public async Task<Location> GetLocation(int id) => await _context.Locations.FindAsync(id);
 
-
-        public async Task<IEnumerable<Location>> GetLocations() => await _context.Locations.ToListAsync();
+        public async Task<IEnumerable<Location>> GetLocations()
+        {
+            return await _context.Locations.ToListAsync();
+        }
 
         public async Task<bool> LocationExists(int id) => await _context.Locations.AnyAsync(l => l.Id == id);
 
